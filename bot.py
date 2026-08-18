@@ -22,21 +22,38 @@ response = requests.post(
 data = response.json()
 
 print("Status:", response.status_code)
-print("Available times:", data.get("horariostexto"))
+print("Response:", response.text)
+
+times = data.get("horariostexto", [])
+
+available_times = []
+
+for time in times:
+    hour, minute = map(int, time.split(":"))
+    total_minutes = hour * 60 + minute
+
+    if total_minutes > 13 * 60 + 15:
+        available_times.append(time)
+
+if not available_times:
+    print("No availability after 13:15.")
+    exit()
+
+print("Available times after 13:15:", available_times)
 
 token = os.environ["TELEGRAM_BOT_TOKEN"]
 chat_id = os.environ["TELEGRAM_CHAT_ID"]
 
 message = (
-    "🍽️ Sopitas — availability update\n\n"
+    "🍽️ Sopitas — AVAILABILITY!\n\n"
     "Date: 23 August 2026\n"
     "Guests: 2\n"
-    f"Available times: {', '.join(data.get('horariostexto', [])) or 'No availability'}"
+    f"Available times after 13:15: {', '.join(available_times)}"
 )
 
 telegram_url = f"https://api.telegram.org/bot{token}/sendMessage"
 
-requests.post(
+telegram_response = requests.post(
     telegram_url,
     data={
         "chat_id": chat_id,
@@ -45,4 +62,6 @@ requests.post(
     timeout=30
 )
 
+print("Telegram status:", telegram_response.status_code)
+print("Telegram response:", telegram_response.text)
 print("Telegram notification sent.")
