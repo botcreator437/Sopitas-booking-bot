@@ -2,6 +2,7 @@ name: Test Sopitas Bot
 
 on:
   workflow_dispatch:
+
   schedule:
     - cron: "*/10 * * * *"
 
@@ -20,12 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Check bot version
-        run: |
-          echo "=== BOT VERSION CHECK ==="
-          grep -n "Available times after 13:15" bot.py
-          grep -n "Available times:" bot.py || true
 
       - name: Run bot
         run: python bot.py
