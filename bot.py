@@ -1,7 +1,7 @@
+import os
 import requests
-import json
 
-URL = "https://gestionreservas.victoriarestauracion.es/reservas/admin/ApiVisitasV2/disponibilidad_bodega"
+API_URL = "https://gestionreservas.victoriarestauracion.es/reservas/admin/ApiVisitasV2/disponibilidad_bodega"
 
 payload = {
     "bodega": "46",
@@ -13,12 +13,36 @@ payload = {
 }
 
 response = requests.post(
-    URL,
+    API_URL,
     json=payload,
     headers={"Content-Type": "application/json"},
     timeout=30
 )
 
+data = response.json()
+
 print("Status:", response.status_code)
-print("Response:")
-print(response.text)
+print("Available times:", data.get("horariostexto"))
+
+token = os.environ["TELEGRAM_BOT_TOKEN"]
+chat_id = os.environ["TELEGRAM_CHAT_ID"]
+
+message = (
+    "🍽️ Sopitas — availability update\n\n"
+    "Date: 23 August 2026\n"
+    "Guests: 2\n"
+    f"Available times: {', '.join(data.get('horariostexto', [])) or 'No availability'}"
+)
+
+telegram_url = f"https://api.telegram.org/bot{token}/sendMessage"
+
+requests.post(
+    telegram_url,
+    data={
+        "chat_id": chat_id,
+        "text": message
+    },
+    timeout=30
+)
+
+print("Telegram notification sent.")
